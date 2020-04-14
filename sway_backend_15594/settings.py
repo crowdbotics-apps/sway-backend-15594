@@ -198,3 +198,9 @@ EMAIL_USE_TLS = True
 if DEBUG:
     # output email to console instead of sending
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass
