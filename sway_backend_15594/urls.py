@@ -28,6 +28,7 @@ urlpatterns = [
     path("users/", include("users.urls", namespace="users")),
 
     path('api/auth/', include('djoser.urls')),
+    path('api/auth/', include('djoser.urls.jwt')),
 ]
 
 admin.site.site_header = "Sway Backend"

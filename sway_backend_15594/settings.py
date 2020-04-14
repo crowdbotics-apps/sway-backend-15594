@@ -61,7 +61,7 @@ THIRD_PARTY_APPS = [
     'django_extensions',
     'djoser',
     'drf_yasg',
-
+    'rest_framework_simplejwt',
 ]
 INSTALLED_APPS += LOCAL_APPS + THIRD_PARTY_APPS
 
@@ -185,6 +185,15 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+
 # `djoser` app is used for API User registration and authentication.
 DJOSER = {
     'LOGIN_FIELD': ACCOUNT_AUTHENTICATION_METHOD,
@@ -196,6 +205,12 @@ DJOSER = {
     'SERIALIZERS': {
          'user_create': 'home.api.v1.serializers.CreateUserSerializer',
     }
+}
+
+
+# JSON Web Token
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
 }
 
 
