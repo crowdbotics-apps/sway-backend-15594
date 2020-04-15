@@ -66,6 +66,12 @@ class User(AbstractUser):
     business_name = models.CharField(max_length=100, blank=True)
     user_type =  models.CharField(choices=USER_TYPES_CHOICES, max_length=20,
                     default=TYPE_CUSTOMER)
+    authy_id = models.CharField(
+        max_length=12,
+        blank=True,
+        null=True,
+        help_text='Authentication ID from Twilio 2FA API.',
+    )
 
     objects = UserManager()
 
