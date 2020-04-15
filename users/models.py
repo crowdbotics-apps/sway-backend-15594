@@ -9,6 +9,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from allauth.utils import generate_unique_username
 
+from phonenumber_field.modelfields import PhoneNumberField
+
 
 class UserManager(BaseUserManager):
 
@@ -57,12 +59,16 @@ class User(AbstractUser):
     name = models.CharField(_("Name of User"), blank=True, null=True, max_length=255)
     email = models.EmailField(_('email address'), unique=True)
     address = models.CharField(max_length=200, blank=True)
-    phone_number = models.CharField(max_length=20, blank=True)
+    # Only `Vendor` users should have unique numbers and require to input.
+    phone_number = PhoneNumberField(null=True, blank=True, unique=True,
+        help_text='Phone number used for 2FA Authentication.',
+    )
     business_name = models.CharField(max_length=100, blank=True)
     user_type =  models.CharField(choices=USER_TYPES_CHOICES, max_length=20,
                     default=TYPE_CUSTOMER)
 
     objects = UserManager()
+
 
     def save(self, *args, **kwargs):
         """Custom save to autosave `username` field."""
