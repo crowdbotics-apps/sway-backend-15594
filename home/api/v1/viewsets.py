@@ -14,10 +14,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from home.api.v1.serializers import (
-    CreateUserSerializer,
     CustomTextSerializer,
     HomePageSerializer,
-    UserSerializer,
 )
 from home.models import CustomText, HomePage
 
