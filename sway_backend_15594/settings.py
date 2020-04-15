@@ -53,16 +53,15 @@ LOCAL_APPS = [
 THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
-    'rest_auth',
-    'rest_auth.registration',
     'bootstrap4',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'django_extensions',
+    'djoser',
     'drf_yasg',
-
+    'rest_framework_simplejwt',
 ]
 INSTALLED_APPS += LOCAL_APPS + THIRD_PARTY_APPS
 
@@ -175,14 +174,6 @@ SOCIALACCOUNT_ADAPTER = "users.adapters.SocialAccountAdapter"
 ACCOUNT_ALLOW_REGISTRATION = env.bool("ACCOUNT_ALLOW_REGISTRATION", True)
 SOCIALACCOUNT_ALLOW_REGISTRATION = env.bool("SOCIALACCOUNT_ALLOW_REGISTRATION", True)
 
-REST_AUTH_SERIALIZERS = {
-    # Replace password reset serializer to fix 500 error
-    "PASSWORD_RESET_SERIALIZER": "home.api.v1.serializers.PasswordSerializer",
-}
-REST_AUTH_REGISTER_SERIALIZERS = {
-    # Use custom serializer that has no username and matches web signup
-    "REGISTER_SERIALIZER": "home.api.v1.serializers.SignupSerializer",
-}
 
 # Custom user model
 AUTH_USER_MODEL = "users.User"
@@ -194,7 +185,41 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+
+# `djoser` app is used for API User registration and authentication.
+DJOSER = {
+    'LOGIN_FIELD': ACCOUNT_AUTHENTICATION_METHOD,
+    'SEND_ACTIVATION_EMAIL': True,
+    'SEND_CONFIRMATION_EMAIL': True,
+    'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
+    'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
+    'ACTIVATION_URL': 'users/activate/{uid}/{token}',
+    'SERIALIZERS': {
+         'user_create': 'home.api.v1.serializers.CreateUserSerializer',
+    }
+}
+
+
+# JSON Web Token
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+}
+
 
 if DEBUG:
     # output email to console instead of sending
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass
