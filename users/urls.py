@@ -13,6 +13,8 @@ router = DefaultRouter()
 router.register('', SwayUserViewSet)
 
 urlpatterns = [
-    path('activate/<str:uid>/<str:token>', user_activation_view),
+
     path('', include(router.urls)),
+    path('activate/<str:uid>/<str:token>', user_activation_view,
+        name='activate-from-email'),
 ]
