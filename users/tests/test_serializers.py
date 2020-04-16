@@ -28,30 +28,68 @@ class CreateUserSerializerTests(APITestCase):
         self.assertTrue(serializer.is_valid())
 
     def test_invalid_payload_fail(self):
-        """Tests that the serializer validates the data passed."""
+        """Tests that the serializer validates the data fails."""
         serializer = CreateUserSerializer(data=self.PAYLOAD)
         self.assertTrue(serializer.is_valid())
 
     def test_user_customer_created(self):
         """Tests that the `customer` user is created."""
-        self.PAYLOAD.update({
+        payload = self.PAYLOAD.copy()
+        payload.update({
             'user_type': User.TYPE_CUSTOMER,
         })
-        serializer = CreateUserSerializer(data=self.PAYLOAD,
+        serializer = CreateUserSerializer(data=payload,
                         context={'request': self.request})
         self.assertTrue(serializer.is_valid())
         serializer.save()
-        user = User.objects.get(email=self.PAYLOAD['email'])
-        self.assertEqual(user.user_type, self.PAYLOAD['user_type'])
+        user = User.objects.get(email=payload['email'])
+        self.assertEqual(user.user_type, payload['user_type'])
 
     def test_user_vendor_created(self):
         """Tests that the `vendor` user is created."""
-        self.PAYLOAD.update({
+        payload = self.PAYLOAD.copy()
+        payload.update({
             'user_type': User.TYPE_VENDOR,
         })
-        serializer = CreateUserSerializer(data=self.PAYLOAD,
+        serializer = CreateUserSerializer(data=payload,
                         context={'request': self.request})
         self.assertTrue(serializer.is_valid())
         serializer.save()
-        user = User.objects.get(email=self.PAYLOAD['email'])
-        self.assertEqual(user.user_type, self.PAYLOAD['user_type'])
+        user = User.objects.get(email=payload['email'])
+        self.assertEqual(user.user_type, payload['user_type'])
+
+    def test_invalid_email_blank(self):
+        """
+        Tests that no email data on serializer. Asserts that `blank`
+        email is not allowed.
+        """
+        email_field = 'email'
+        payload = self.PAYLOAD.copy()
+        payload.update({
+            email_field: '',
+        })
+        serializer = CreateUserSerializer(data=payload)
+        self.assertFalse(serializer.is_valid())
+        email_errors = serializer.errors[email_field]
+        self.assertEqual(len(email_errors), 1)
+        # Assert email may not be blank
+        self.assertEqual(str(email_errors[0]),
+            serializer.fields[email_field].error_messages['blank'])
+
+    def test_invalid_email_null(self):
+        """
+        Tests that no email data on serializer. Asserts that `null`
+        email is not allowed.
+        """
+        email_field = 'email'
+        payload = self.PAYLOAD.copy()
+        payload.update({
+            email_field: None,
+        })
+        serializer = CreateUserSerializer(data=payload)
+        self.assertFalse(serializer.is_valid())
+        email_errors = serializer.errors[email_field]
+        self.assertEqual(len(email_errors), 1)
+        # Assert email may not be null
+        self.assertEqual(str(email_errors[0]),
+            serializer.fields[email_field].error_messages['null'])
