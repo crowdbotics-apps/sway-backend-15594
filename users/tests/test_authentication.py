@@ -60,8 +60,7 @@ class CustomerRegistrationTests(TestCase):
 class VendorRegistrationTests(TestCase):
     """Test the Vendor users registration API."""
 
-    SIGNUP_URL = reverse('users:user-create-vendor')
-
+    SIGNUP_URL = reverse('users:vendor')
     VENDOR_PAYLOAD = {
         'first_name': 'Aaa',
         'last_name': 'Aaa',
@@ -69,6 +68,8 @@ class VendorRegistrationTests(TestCase):
         'password': 'Password0978',
         're_password': 'Password0978',
         'user_type': 'vendor',
+        'country_code': '+12',
+        'phone_number': '125552368',
     }
 
     def setUp(self):

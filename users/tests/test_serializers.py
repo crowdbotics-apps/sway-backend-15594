@@ -4,7 +4,12 @@ Unit tests for API Serializers.
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import APITestCase
 
-from ..serializers import CreateUserSerializer
+from phonenumber_field.serializerfields import PhoneNumberField
+
+from ..serializers import (
+    CreateUserSerializer,
+    CreateVendorUserSerializer
+)
 from ..models import User
 
 
@@ -127,3 +132,67 @@ class CreateUserSerializerTests(APITestCase):
         self.assertFalse(serializer.is_valid())
         self.assertEqual('password_mismatch',
             serializer.errors['non_field_errors'].pop().code)
+
+
+class CreateVendorUserSerializerTests(APITestCase):
+
+    PAYLOAD = {
+        'first_name': 'Aaa',
+        'last_name': 'Aaa',
+        'email': 'a@a.com',
+        'country_code': '+48',
+        'phone_number': '123456789',
+        'address': 'Aaa',
+        'business_name': 'Aaa',
+        'password': 'Password0978',
+        're_password': 'Password0978',
+    }
+
+    def setUp(self):
+        self.request = APIRequestFactory().get('/')
+        self.request.session = {}
+
+    def test_valid_payload_success(self):
+        """Tests that the serializer with valid data."""
+        payload = self.PAYLOAD.copy()
+        serializer = CreateVendorUserSerializer(data=self.PAYLOAD)
+        self.assertTrue(serializer.is_valid())
+
+    def test_country_code_errors(self):
+        """Tests that invalid `country_code` validates the `phone_number`."""
+        country_code = 'country_code'
+        payload = self.PAYLOAD.copy()
+        payload.update({
+            country_code: '1',
+        })
+        serializer = CreateVendorUserSerializer(data=payload)
+        self.assertFalse(serializer.is_valid())
+        phone_errors = serializer.errors['phone_number']
+        self.assertEqual(len(phone_errors), 1)
+        self.assertEqual(str(phone_errors[0]),
+            PhoneNumberField.default_error_messages['invalid'])
+
+    def test_phone_number_errors(self):
+        """Tests that phone_number field errors."""
+        phone_field = 'phone_number'
+        payload = self.PAYLOAD.copy()
+        payload.update({
+            phone_field: None,
+        })
+        serializer = CreateVendorUserSerializer(data=payload)
+        self.assertFalse(serializer.is_valid())
+        phone_errors = serializer.errors[phone_field]
+        self.assertEqual(len(phone_errors), 1)
+        self.assertEqual(str(phone_errors[0]),
+            serializer.fields[phone_field].error_messages['null'])
+
+        payload = self.PAYLOAD.copy()
+        payload.update({
+            phone_field: '1',
+        })
+        serializer = CreateVendorUserSerializer(data=payload)
+        self.assertFalse(serializer.is_valid())
+        phone_errors = serializer.errors[phone_field]
+        self.assertEqual(len(phone_errors), 1)
+        self.assertEqual(str(phone_errors[0]),
+            PhoneNumberField.default_error_messages['invalid'])
