@@ -93,3 +93,37 @@ class CreateUserSerializerTests(APITestCase):
         # Assert email may not be null
         self.assertEqual(str(email_errors[0]),
             serializer.fields[email_field].error_messages['null'])
+
+    def test_allowed_empty_fields(self):
+        """Tests allowed empty fields."""
+        payload = self.PAYLOAD.copy()
+        payload.update({
+            'first_name': '',
+            'last_name': '',
+        })
+        serializer = CreateUserSerializer(data=payload)
+        self.assertTrue(serializer.is_valid())
+
+    def test_password_field(self):
+        """Tests for password field."""
+        password_field = 'password'
+        payload = self.PAYLOAD.copy()
+        # Test password is required.
+        payload.update({
+            password_field: '',
+        })
+        serializer = CreateUserSerializer(data=payload)
+        self.assertFalse(serializer.is_valid())
+        password_errors = serializer.errors[password_field]
+        self.assertEqual(len(password_errors), 1)
+        self.assertEqual(str(password_errors[0]),
+            serializer.fields[password_field].error_messages['blank'])
+        # Test password and re_password should match.
+        payload.update({
+            'password': 'Password0978',
+            're_password': 'Password7809',
+        })
+        serializer = CreateUserSerializer(data=payload)
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual('password_mismatch',
+            serializer.errors['non_field_errors'].pop().code)

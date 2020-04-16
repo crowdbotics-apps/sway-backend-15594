@@ -14,12 +14,11 @@ from rest_framework import status
 from ..models import User
 
 
-SIGNUP_URL = reverse('user-list')
 
+class CustomerRegistrationTests(TestCase):
+    """Test the Customer users registration API"""
 
-class RegistrationTests(TestCase):
-    """Test the users registration API"""
-
+    SIGNUP_URL = reverse('users:user-list')
     DEFAULT_PAYLOAD = {
         'first_name': 'Aaa',
         'last_name': 'Aaa',
@@ -27,21 +26,13 @@ class RegistrationTests(TestCase):
         'password': 'Password0978',
         're_password': 'Password0978',
     }
-    VENDOR_PAYLOAD = {
-        'first_name': 'Aaa',
-        'last_name': 'Aaa',
-        'email': 'a@a.com',
-        'password': 'Password0978',
-        're_password': 'Password0978',
-        'user_type': 'vendor',
 
-    }
     def setUp(self):
         self.client = APIClient()
 
     def test_create_valid_customer_email_created(self):
         """Test that an EmailAddress instance is created with the signup."""
-        res = self.client.post(SIGNUP_URL, self.DEFAULT_PAYLOAD)
+        res = self.client.post(self.SIGNUP_URL, self.DEFAULT_PAYLOAD)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         res_email = res.data['email']
         email = EmailAddress.objects.get(email=res_email)
@@ -49,7 +40,7 @@ class RegistrationTests(TestCase):
 
     def test_create_valid_customer_user_success(self):
         """Test creating customer user with valid payload is successful."""
-        res = self.client.post(SIGNUP_URL, self.DEFAULT_PAYLOAD)
+        res = self.client.post(self.SIGNUP_URL, self.DEFAULT_PAYLOAD)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         res_data = res.data
         user = get_user_model().objects.get(**res_data)
@@ -61,14 +52,32 @@ class RegistrationTests(TestCase):
 
     def test_create_valid_customer_email_sent(self):
         """Test creating customer user with email activation."""
-        res = self.client.post(SIGNUP_URL, self.DEFAULT_PAYLOAD)
+        res = self.client.post(self.SIGNUP_URL, self.DEFAULT_PAYLOAD)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertTrue(bool(len(mail.outbox)))
+
+
+class VendorRegistrationTests(TestCase):
+    """Test the Vendor users registration API."""
+
+    SIGNUP_URL = reverse('users:user-create-vendor')
+
+    VENDOR_PAYLOAD = {
+        'first_name': 'Aaa',
+        'last_name': 'Aaa',
+        'email': 'a@a.com',
+        'password': 'Password0978',
+        're_password': 'Password0978',
+        'user_type': 'vendor',
+    }
+
+    def setUp(self):
+        self.client = APIClient()
 
     def test_create_valid_vendor_user_success(self):
         """Test creating vendor user with valid payload is successful."""
 
-        res = self.client.post(SIGNUP_URL, self.VENDOR_PAYLOAD)
+        res = self.client.post(self.SIGNUP_URL, self.VENDOR_PAYLOAD)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
         user = get_user_model().objects.get(**res.data)
@@ -79,6 +88,6 @@ class RegistrationTests(TestCase):
 
     def test_create_valid_vendor_no_email_sent(self):
         """Test creating vendor user has no email activation."""
-        res = self.client.post(SIGNUP_URL, self.VENDOR_PAYLOAD)
+        res = self.client.post(self.SIGNUP_URL, self.VENDOR_PAYLOAD)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertFalse(bool(len(mail.outbox)))
