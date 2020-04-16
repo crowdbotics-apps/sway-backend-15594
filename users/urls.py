@@ -1,14 +1,16 @@
-from django.urls import path
+from django.urls import include, path
 
-from users.views import (
-    user_redirect_view,
-    user_update_view,
-    user_detail_view,
+from rest_framework.routers import DefaultRouter
+
+from .views import (
+    SwayUserViewSet,
 )
 
 app_name = "users"
+
+router = DefaultRouter()
+router.register('', SwayUserViewSet)
+
 urlpatterns = [
-    path("~redirect/", view=user_redirect_view, name="redirect"),
-    path("~update/", view=user_update_view, name="update"),
-    path("<str:username>/", view=user_detail_view, name="detail"),
+    path('', include(router.urls)),
 ]

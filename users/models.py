@@ -86,6 +86,13 @@ class User(AbstractUser):
             ])
         return super(User, self).save(*args, **kwargs)
 
+    @property
+    def is_customer(self):
+        return self.user_type == self.TYPE_CUSTOMER
+
+    @property
+    def is_vendor(self):
+        return self.user_type == self.TYPE_VENDOR
 
     def get_absolute_url(self):
         return reverse("users:detail", kwargs={"username": self.username})

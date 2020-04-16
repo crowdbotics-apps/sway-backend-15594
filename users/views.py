@@ -3,7 +3,32 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.views.generic import DetailView, RedirectView, UpdateView
 
-User = get_user_model()
+from djoser import signals
+from djoser.compat import get_user_email
+from djoser.conf import settings as djoser_settings
+from djoser.views import UserViewSet
+
+from .models import User
+
+
+class SwayUserViewSet(UserViewSet):
+    """User registration viewset."""
+
+    def perform_create(self, serializer):
+        """
+        Only Customers are sent with activation emails while Vendors
+        require phone 2FA.
+        """
+        user = serializer.save()
+        signals.user_registered.send(
+            sender=self.__class__,
+            user=user,
+            request=self.request
+        )
+        if djoser_settings.SEND_ACTIVATION_EMAIL and user.is_customer:
+            context = {'user': user}
+            to = [get_user_email(user)]
+            djoser_settings.EMAIL.activation(self.request, context).send(to)
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):
