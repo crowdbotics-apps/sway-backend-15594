@@ -1,7 +1,14 @@
-from django.contrib.auth import get_user_model
+import json
+import requests
+
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.views.generic import DetailView, RedirectView, UpdateView
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from djoser import signals
 from djoser.compat import get_user_email
@@ -29,6 +36,25 @@ class SwayUserViewSet(UserViewSet):
             context = {'user': user}
             to = [get_user_email(user)]
             djoser_settings.EMAIL.activation(self.request, context).send(to)
+
+
+class UserActivationView(APIView):
+    """
+    Custom view to handle GET request on registration User activation.
+    """
+    def get (self, request, uid, token):
+        site = get_current_site(self.request)
+        domain = getattr(settings, 'DOMAIN', '') or site.domain
+        protocol = 'https://' if request.is_secure() else 'http://'
+        activation_url = reverse('user-activation')
+        activation_url = f'{protocol}{domain}{activation_url}'
+
+        post_data = {'uid': uid, 'token': token}
+        result = requests.post(activation_url, data=post_data)
+        content = json.dumps(result.text)
+        return Response(content, status=result.status_code)
+
+user_activation_view = UserActivationView.as_view()
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):
