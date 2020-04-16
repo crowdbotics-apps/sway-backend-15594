@@ -11,7 +11,7 @@ from allauth.account.models import EmailAddress
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from users.models import User
+from ..models import User
 
 
 SIGNUP_URL = reverse('user-list')

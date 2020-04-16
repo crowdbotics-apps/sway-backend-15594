@@ -203,7 +203,7 @@ DJOSER = {
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': 'users/activate/{uid}/{token}',
     'SERIALIZERS': {
-         'user_create': 'home.api.v1.serializers.CreateUserSerializer',
+         'user_create': 'users.serializers.CreateUserSerializer',
     }
 }
 

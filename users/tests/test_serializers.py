@@ -4,9 +4,8 @@ Unit tests for API Serializers.
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import APITestCase
 
-from home.api.v1.serializers import CreateUserSerializer
-
-from users.models import User
+from ..serializers import CreateUserSerializer
+from ..models import User
 
 
 class CreateUserSerializerTests(APITestCase):
