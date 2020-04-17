@@ -9,6 +9,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from allauth.utils import generate_unique_username
 
+from phonenumber_field.modelfields import PhoneNumberField
+
 
 class UserManager(BaseUserManager):
 
@@ -57,12 +59,22 @@ class User(AbstractUser):
     name = models.CharField(_("Name of User"), blank=True, null=True, max_length=255)
     email = models.EmailField(_('email address'), unique=True)
     address = models.CharField(max_length=200, blank=True)
-    phone_number = models.CharField(max_length=20, blank=True)
+    # Only `Vendor` users should have unique numbers and require to input.
+    phone_number = PhoneNumberField(null=True, blank=True, unique=True,
+        help_text='Phone number used for 2FA Authentication.',
+    )
     business_name = models.CharField(max_length=100, blank=True)
     user_type =  models.CharField(choices=USER_TYPES_CHOICES, max_length=20,
                     default=TYPE_CUSTOMER)
+    authy_id = models.CharField(
+        max_length=12,
+        blank=True,
+        null=True,
+        help_text='Authentication ID from Twilio 2FA API.',
+    )
 
     objects = UserManager()
+
 
     def save(self, *args, **kwargs):
         """Custom save to autosave `username` field."""
@@ -74,6 +86,17 @@ class User(AbstractUser):
             ])
         return super(User, self).save(*args, **kwargs)
 
+    @property
+    def is_phone_verified(self):
+        return True if self.authy_id else False
+
+    @property
+    def is_customer(self):
+        return self.user_type == self.TYPE_CUSTOMER
+
+    @property
+    def is_vendor(self):
+        return self.user_type == self.TYPE_VENDOR
 
     def get_absolute_url(self):
         return reverse("users:detail", kwargs={"username": self.username})

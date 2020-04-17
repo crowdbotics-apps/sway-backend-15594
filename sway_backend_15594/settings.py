@@ -201,9 +201,9 @@ DJOSER = {
     'SEND_CONFIRMATION_EMAIL': True,
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': 'users/activate/{uid}/{token}',
+    'ACTIVATION_URL': '/api/auth/users/activate/{uid}/{token}',
     'SERIALIZERS': {
-         'user_create': 'home.api.v1.serializers.CreateUserSerializer',
+         'user_create': 'users.serializers.CreateUserSerializer',
     }
 }
 
@@ -212,6 +212,10 @@ DJOSER = {
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
 }
+
+
+# Twilio App API
+ACCOUNT_SECURITY_API_KEY = env.str('ACCOUNT_SECURITY_API_KEY', default='')
 
 
 if DEBUG:

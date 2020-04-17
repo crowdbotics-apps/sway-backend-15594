@@ -1,14 +1,27 @@
-from django.urls import path
+from django.urls import include, path
 
-from users.views import (
-    user_redirect_view,
-    user_update_view,
-    user_detail_view,
+from rest_framework.routers import DefaultRouter
+
+from .views import (
+    PhoneVerificationView,
+    PhoneRegistrationView,
+    SwayUserViewSet,
+    VendorUserView,
+    user_activation_view,
 )
 
 app_name = "users"
+
+router = DefaultRouter()
+router.register('', SwayUserViewSet)
+
 urlpatterns = [
-    path("~redirect/", view=user_redirect_view, name="redirect"),
-    path("~update/", view=user_update_view, name="update"),
-    path("<str:username>/", view=user_detail_view, name="detail"),
+    path('phone-verify/', PhoneVerificationView.as_view(), name='phone_verify'),
+    path('phone-register/', PhoneRegistrationView.as_view(), name='phone_register'),
+
+    path('vendor/', VendorUserView.as_view(), name='vendor'),
+
+    path('', include(router.urls)),
+    path('activate/<str:uid>/<str:token>', user_activation_view,
+        name='activate-from-email'),
 ]

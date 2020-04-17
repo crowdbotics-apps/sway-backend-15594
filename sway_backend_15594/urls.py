@@ -25,8 +25,8 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("api/v1/", include("home.api.v1.urls")),
     path("admin/", admin.site.urls),
-    path("users/", include("users.urls", namespace="users")),
 
+    path('api/auth/users/', include('users.urls', namespace='users')),
     path('api/auth/', include('djoser.urls')),
     path('api/auth/', include('djoser.urls.jwt')),
 ]
