@@ -1,4 +1,9 @@
+import phonenumbers
+
+from django.conf import settings
+
 from allauth.account.utils import setup_user_email
+from authy.api import AuthyApiClient
 
 from djoser.conf import settings as djoser_settings
 from djoser.serializers import (
@@ -42,6 +47,53 @@ class CreateUserSerializer(UserCreatePasswordRetypeSerializer):
         user = super(CreateUserSerializer, self).create(validated_data)
         setup_user_email(self.context['request'], user, [])
         return user
+
+
+class PhoneSerializer(serializers.Serializer):
+    """
+    Serializer for `phone_number` verification.
+    """
+    phone_number = PhoneNumberField(required=True)
+
+    def validate(self, data):
+        """
+        Validate the phone number on the Authy API Server. If valid,
+        Twilio API will send 4 digit verification token via SMS.
+        """
+        phone_number = phonenumbers.parse(
+                        str(data.get('phone_number')), None)
+        authy_api = AuthyApiClient(settings.ACCOUNT_SECURITY_API_KEY)
+        authy_phone = authy_api.phones.verification_start(
+            phone_number.national_number,
+            phone_number.country_code
+        )
+        if authy_phone.ok():
+            # authy_phone.response
+            return data
+        else:
+            raise exceptions.ValidationError(authy_phone.errors())
+
+
+class PhoneVerificationCodeSerializer(serializers.Serializer):
+    phone_number = PhoneNumberField(required=True)
+    verification_code = serializers.CharField(min_length=4,
+                            required=True,
+                            write_only=True)
+
+    def validate(self, data):
+        # TODO: move to field validation
+        phone_number = phonenumbers.parse(
+                    str(data.get('phone_number')), None)
+        authy_api = AuthyApiClient(settings.ACCOUNT_SECURITY_API_KEY)
+        authy_phone = authy_api.phones.verification_check(
+            phone_number.national_number,
+            phone_number.country_code,
+            data.get('verification_code')
+        )
+        if authy_phone.ok():
+            return data
+        else:
+            raise exceptions.ValidationError(authy_phone.errors())
 
 
 class CreateVendorUserSerializer(CreateUserSerializer):

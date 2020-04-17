@@ -3,8 +3,10 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
-    VendorUserView,
+    PhoneVerificationView,
+    PhoneRegistrationView,
     SwayUserViewSet,
+    VendorUserView,
     user_activation_view,
 )
 
@@ -14,6 +16,9 @@ router = DefaultRouter()
 router.register('', SwayUserViewSet)
 
 urlpatterns = [
+    path('phone-verify/', PhoneVerificationView.as_view(), name='phone_verify'),
+    path('phone-register/', PhoneRegistrationView.as_view(), name='phone_register'),
+
     path('vendor/', VendorUserView.as_view(), name='vendor'),
 
     path('', include(router.urls)),
