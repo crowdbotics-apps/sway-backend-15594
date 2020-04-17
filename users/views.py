@@ -66,6 +66,8 @@ class VendorUserView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
+        user.user_type = User.TYPE_VENDOR
+        user.save()
         # Dispatch signal for successful User registration.
         signals.user_registered.send(
             sender=self.__class__,

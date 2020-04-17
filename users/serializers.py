@@ -27,7 +27,6 @@ DEFAULT_USER_FIELDS = (
     'password',
     'first_name',
     'last_name',
-    'user_type',
 )
 
 class CreateUserSerializer(UserCreatePasswordRetypeSerializer):
