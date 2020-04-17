@@ -21,6 +21,7 @@ class UserAdmin(auth_admin.UserAdmin):
                 'last_name',
                 'phone_number',
                 'business_name',
+                'authy_id',
             )
         }),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
@@ -39,3 +40,6 @@ class UserAdmin(auth_admin.UserAdmin):
         'user_type',
     ]
     search_fields = ["name"]
+    readonly_fields = [
+        'authy_id',
+    ]

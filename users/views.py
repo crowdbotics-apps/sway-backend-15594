@@ -32,7 +32,7 @@ from .serializers import (
     CreateUserSerializer,
     CreateVendorUserSerializer,
     PhoneSerializer,
-    PhoneVerificationCodeSerializer,
+    PhoneVerificationSerializer,
 )
 
 
@@ -67,7 +67,8 @@ class VendorUserView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = serializer.save()
         user.user_type = User.TYPE_VENDOR
-        user.save()
+        user.is_active = True
+        user.save(update_fields=['user_type', 'is_active'])
         # Dispatch signal for successful User registration.
         signals.user_registered.send(
             sender=self.__class__,
@@ -75,12 +76,20 @@ class VendorUserView(generics.CreateAPIView):
             request=self.request
         )
 
+        # Verify phone number
+        authy_api = AuthyApiClient(settings.ACCOUNT_SECURITY_API_KEY)
+        authy_phone = authy_api.phones.verification_start(
+            user.phone_number.national_number,
+            user.phone_number.country_code
+        )
+        if not authy_phone.ok():
+            raise exceptions.ValidationError(authy_phone.errors())
+
 
 class PhoneVerificationView(generics.GenericAPIView):
     """Handles the Twilio phone verification."""
 
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = PhoneSerializer
 
     def post(self, request):
@@ -99,9 +108,8 @@ class PhoneRegistrationView(generics.GenericAPIView):
     If successful, user instance will be updated with verified authy_id
     received from Twilio API authy_id
     """
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-    serializer_class = PhoneVerificationCodeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = PhoneVerificationSerializer
     queryset = User.objects.all()
 
     def get_object(self):
@@ -111,9 +119,8 @@ class PhoneRegistrationView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        phone_number = str(serializer.validated_data['phone_number'])
-        user = User.objects.get(phone_number=phone_number)
-        phone = phonenumbers.parse(phone_number, None)
+        phone = serializer.validated_data['phone_number']
+        user = self.get_object()
         authy_api = AuthyApiClient(settings.ACCOUNT_SECURITY_API_KEY)
         authy_user = authy_api.users.create(
             user.email,
@@ -125,13 +132,13 @@ class PhoneRegistrationView(generics.GenericAPIView):
             # Successful verifying `phone_number` and `verification_code`
             # TODO: Move to method
             user.authy_id = authy_user.id
-            user.is_active = True
-            user.save()
+            user.save(update_fields=['authy_id'])
             signals.user_activated.send(
                 sender=self.__class__,
                 user=user,
                 request=self.request
             )
+
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(authy_user.errors(),

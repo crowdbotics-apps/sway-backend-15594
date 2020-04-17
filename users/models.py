@@ -87,6 +87,10 @@ class User(AbstractUser):
         return super(User, self).save(*args, **kwargs)
 
     @property
+    def is_phone_verified(self):
+        return True if self.authy_id else False
+
+    @property
     def is_customer(self):
         return self.user_type == self.TYPE_CUSTOMER
 

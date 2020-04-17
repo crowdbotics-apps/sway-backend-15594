@@ -57,6 +57,7 @@ class CreateVendorUserSerializer(CreateUserSerializer):
                     help_text='Phone number country code with optional `+` prefix')
     phone_number = serializers.CharField(required=True,
                     help_text='Phone number')
+    is_phone_verified = serializers.ReadOnlyField()
 
     class Meta(CreateUserSerializer.Meta):
         fields = tuple(DEFAULT_USER_FIELDS) + (
@@ -64,8 +65,11 @@ class CreateVendorUserSerializer(CreateUserSerializer):
             'phone_number',
             'address',
             'business_name',
+            'is_phone_verified',
         )
-        read_only_fields = ('country_code',)
+        read_only_fields = (
+            'country_code',
+        )
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -115,7 +119,7 @@ class PhoneSerializer(serializers.Serializer):
             raise exceptions.ValidationError(authy_phone.errors())
 
 
-class PhoneVerificationCodeSerializer(serializers.Serializer):
+class PhoneVerificationSerializer(serializers.Serializer):
     phone_number = PhoneNumberField(required=True)
     verification_code = serializers.CharField(min_length=4,
                             required=True,
